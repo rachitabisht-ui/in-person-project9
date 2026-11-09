@@ -4,24 +4,23 @@ import { Link } from 'react-router-dom'
 import ProjectCard from '../components/ProjectCard'
 import SearchBar from '../components/SearchBar'
 // TODO: Import the custom useFetch hook once created
-import { projects } from '../data/projects'
+import { useFetch } from '../hooks/useFetch'
 
 function ProjectsPage() {
-  const [filteredProjects, setFilteredProjects] = useState(projects)
-
   // TODO: Replace this with the useFetch custom hook
   // const { data: projects, loading, error } = useFetch('/api/projects')
+  const { data: projects, loading, error } = useFetch('/projects.json')
+  const [searchTerm, setSearchTerm] = useState('')
 
-  const handleSearch = (searchTerm) => {
-    const filtered = projects.filter(project =>
-      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.technologies.some(tech =>
-        tech.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+  const handleSearch = (term) => setSearchTerm(term)
+
+  const filteredProjects = (projects || []).filter(project =>
+    project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.technologies.some(tech =>
+      tech.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    setFilteredProjects(filtered)
-  }
+  )
 
   return (
     <div className="projects-page">
@@ -33,6 +32,8 @@ function ProjectsPage() {
       <SearchBar onSearch={handleSearch} />
 
       {/* TODO: Add loading and error states when using useFetch */}
+      {loading && <div className="spinner">Loading projects...</div>}
+      {error && <div className="error">Could not load projects: {error}</div>}
 
       <div className="projects-grid">
         {filteredProjects.map(project => (
@@ -43,7 +44,7 @@ function ProjectsPage() {
         ))}
       </div>
 
-      {filteredProjects.length === 0 && (
+      {!loading && !error && filteredProjects.length === 0 && (
         <div className="no-results">
           <p>No projects match your search.</p>
         </div>
